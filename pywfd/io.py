@@ -195,14 +195,13 @@ class WFDLoader(Loader):
         range_scale = self.headerA(lb.RANGE_OF_SCALE, "DATATYPE", "VALUE")
         time_all_block = self.headerA(lb.TIME_ALL_BLOCK, "DATATYPE", "VALUE")
         freq_all_block = bps * range_scale
-
         data = {}
 
         for dtype in self.indexes["DATATYPE"]:
             if self.indexA(dtype, "DATATYPE", "INDEX") <= 0:
                 data[dtype] = []
                 continue
-            
+
             self.data_offset[dtype] = [self.offset, self.indexA(dtype, "DATATYPE", "DATAFORMAT")]
             datasize = self.indexA(dtype, "DATATYPE", "DATASIZE")
             dataformat = self.indexA(dtype, "DATATYPE", "DATAFORMAT")
@@ -214,6 +213,7 @@ class WFDLoader(Loader):
             if len(v) == (time_all_block * freq_all_block):
                 result_data[k] = np.array(self.__spectrumData(v, time_all_block, freq_all_block), dtype="float32").T
             elif k == lb.CHORD_RESULT:
+                v = v[16:]
                 result_data[k] = np.array(list(cp.splitindex(v, 48))[:-1])
             else:
                 result_data[k] = v

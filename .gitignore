@@ -6,3 +6,4 @@ build
 .pypirc
 *.bat
 *.wfd
+test.py
