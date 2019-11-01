@@ -46,6 +46,34 @@ def number_to_chord(chord_num, is_input=False, on_chord=False):
     return chord_name_pitch[pitch] + chord_name[name]
 
 
+def chord_label(chord_time):
+    result_text = ""
+
+    for times in chord_time:
+        result_text += str(times.start_time) + ":" + str(times.end_time) + ":" + times.chord + "\n"
+
+    return result_text
+
+
+class ChordLabel:
+    def __init__(self, start_time, end_time, chord):
+        self._start_time = start_time
+        self._end_time = end_time
+        self._chord = chord
+
+    @property
+    def start_time(self):
+        return self._start_time
+
+    @property
+    def end_time(self):
+        return self._end_time
+
+    @property
+    def chord(self):
+        return self._chord
+
+
 class ChordSplit:
     def __init__(self, chord, bpm, bpm_offset):
         self._chord = chord
@@ -82,7 +110,7 @@ class ChordSplit:
                     break
         return chord
 
-    def chord_time(self, ax=0.04):
+    def chord_time(self, ax=0.01):
         """[summary]
         
         Args:
@@ -92,8 +120,8 @@ class ChordSplit:
             {x: [start_time, end_time, chord]}
         """
         music_len = int((self.bpm_offset / 1000) + (len(self.chord) * self.splittime))
-        time = int(self.bpm_offset / 1000) + ax
-        result_chord = {}
+        time = int(self.bpm_offset / 1000)
+        result_chord = []
         result_times = []
 
         chord_ = ""
@@ -103,8 +131,7 @@ class ChordSplit:
             if n_chord != chord_:
                 result_times.append(time)
                 if len(result_times) == 2:
-                    result_times.append(chord_)
-                    result_chord[count] = result_times
+                    result_chord.append(ChordLabel(result_times[0], result_times[1], chord_))
                     result_times = [time]
                     count += 1
                 chord_ = n_chord
