@@ -104,17 +104,20 @@ class ChordSplit:
 
         chord = self._split(intime)
         if chord == "":
+            ex = True
             for i in reversed(range(intime)):
                 chord = self._split(i)
                 if chord == "N.C." or chord != "":
                     break
-        return chord
+        else:
+            ex = False
+        return chord, ex, intime
 
     def chord_time(self, ax=0.01):
         """[summary]
         
         Args:
-            ax (float, optional): 解析する頻度(秒). Defaults to 0.04.
+            ax (float, optional): 解析する頻度(秒). Defaults to 0.01.
         
         Returns:
             {x: [start_time, end_time, chord]}
@@ -125,16 +128,18 @@ class ChordSplit:
         result_times = []
 
         chord_ = ""
+        intime_ = -1
         count = 0
         for i in range(int(music_len / ax)):
-            n_chord = self.frame(time)
-            if n_chord != chord_:
+            n_chord, ex, intime = self.frame(time)
+            if not ex and intime != intime_:
                 result_times.append(time)
                 if len(result_times) == 2:
                     result_chord.append(ChordLabel(result_times[0], result_times[1], chord_))
                     result_times = [time]
                     count += 1
                 chord_ = n_chord
+                intime_ = intime
             time += ax
 
         return result_chord
