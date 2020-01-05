@@ -13,13 +13,13 @@ $ pip install pywfd
 
 ### WFDファイル読み込み
 ```python
->>> from wfdload import WFD
+>>> from pywfd import WFD
 >>> wfd = WFD()
 >>> wfd_data = wfd.load("./test.wfd")
 ```
 ### スペクトルステレオ(音声スペクトル)
 ```python
->>> from wfdload import WFD
+>>> from pywfd import WFD
 >>> wfd = WFD()
 >>> wfd_data = wfd.load("./test.wfd")
 >>> wfd_data.spectrumStereo
@@ -29,7 +29,7 @@ $ pip install pywfd
 
 ### コード
 ```python
->>> from wfdload import WFD
+>>> from pywfd import WFD
 >>> wfd = WFD()
 >>> wfd_data = wfd.load("./test.wfd")
 >>> time = 1
@@ -39,7 +39,7 @@ $ pip install pywfd
 
 ### WFDファイル書き込み
 ```python
->>> from wfdload import WFD
+>>> from pywfd import WFD
 >>> wfd = WFD()
 >>> wfd_data = wfd.load("./test.wfd")
 >>> # wfd_data.spectrumStereo = []
