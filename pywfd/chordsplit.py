@@ -34,14 +34,20 @@ def splitindex(l, n):
 
 
 def number_to_chord(chord_num, is_input=False, on_chord=False):
-    name = chord_num // 12
+    pitch = (chord_num % 12)
+
     if on_chord:
-        pitch = (chord_num % 12) - 1
+        name = 0
+        pitch -= 1
     else:
-        pitch = chord_num % 12
+        name = chord_num // 12
+
     if is_input:
+        name -= 1
         pitch += 1
-        pitch %= 12
+
+    pitch %= 12
+    name %= 14
 
     return chord_name_pitch[pitch] + chord_name[name]
 
@@ -100,8 +106,10 @@ class ChordSplit:
     def frame(self, time):
         intime = int((time - (self.bpm_offset / 1000)) // self.splittime)
         if intime < 0:
-            intime = 0
-
+            return "N.C.", False, intime
+        
+        if intime >= len(self.chord):
+            raise ValueError
         chord = self._split(intime)
         if chord == "":
             ex = True
@@ -114,6 +122,9 @@ class ChordSplit:
         return chord, ex, intime
 
     def chord_time(self, ax=0.01):
+        return self.getChordLabel(ax=ax)
+
+    def getChordLabel(self, ax=0.01):
         """[summary]
         
         Args:
@@ -123,7 +134,7 @@ class ChordSplit:
             {x: [start_time, end_time, chord]}
         """
         music_len = int((self.bpm_offset / 1000) + (len(self.chord) * self.splittime))
-        time = int(self.bpm_offset / 1000)
+        time = 0.0
         result_chord = []
         result_times = []
 
@@ -131,7 +142,10 @@ class ChordSplit:
         intime_ = -1
         count = 0
         for i in range(int(music_len / ax)):
-            n_chord, ex, intime = self.frame(time)
+            try:
+                n_chord, ex, intime = self.frame(time)
+            except ValueError:
+                break
             if not ex and intime != intime_:
                 result_times.append(time)
                 if len(result_times) == 2:
@@ -149,13 +163,12 @@ class ChordSplit:
         input_chord = self.chord[time][4]
         input_on_chord = self.chord[time][5]
         auto_chord = self.chord[time][8]
-        auto_on_chord = self.chord[time][9]
 
         result_chord = ""
         # コードが存在していたら
         if enable_chord:
             # コード入力の場合
-            if input_chord > 1:
+            if input_chord > 10:
                 result_chord = number_to_chord(input_chord, is_input=True)
                 if input_on_chord:
                     result_chord += "/" + \
@@ -166,8 +179,7 @@ class ChordSplit:
 
             # 自動認識の場合
             else:
+                auto_chord = self.chord[time][4 + (4 * input_chord)]
                 result_chord = number_to_chord(auto_chord)
-                if auto_on_chord:
-                    result_chord += "/" + number_to_chord(auto_on_chord, on_chord=True)
 
         return result_chord
