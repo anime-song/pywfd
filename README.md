@@ -27,14 +27,16 @@ $ pip install pywfd
 >>> # wfd_data.spectrumStereo = []
 ```
 
-### コード
+### コードラベル
 ```python
 >>> from pywfd import WFD
 >>> wfd = WFD()
 >>> wfd_data = wfd.load("./test.wfd")
->>> time = 1
->>> w.chordresult.frame(time)   # timeは音声位置の秒数です
-"C"
+>>> wfd_data.chordresult.getChordLabel(ax=0.01) # axは解析する時間の頻度(秒)
+0.0:0.07:N.C.
+0.07:0.26000000000000006:N.C.
+0.26000000000000006:0.45000000000000023:N.C.
+0.45000000000000023:1.0100000000000007:DM7
 ```
 
 ### WFDファイル書き込み
