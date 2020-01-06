@@ -35,15 +35,15 @@ def splitindex(l, n):
 
 def number_to_chord(chord_num, is_input=False, on_chord=False):
     pitch = (chord_num % 12)
+    name = 0
 
     if on_chord:
-        name = 0
         pitch -= 1
     else:
         name = chord_num // 12
 
     if is_input:
-        name -= 1
+        name = (chord_num - 11) // 12
         pitch += 1
 
     pitch %= 12
