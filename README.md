@@ -39,7 +39,7 @@ $ pip install pywfd
 >>> import pywfd
 >>> from pywfd import chord_label
 >>> wfd_data = pywfd.load("./test.wfd")
->>> chord_time = wfd_data.chordresult.getChordLabel(ax=0.01) # axは解析する時間の頻度(秒)
+>>> chord_time = wfd_data.chords.getChordLabel(ax=0.01) # axは解析する時間の頻度(秒)
 >>> label = chord_label(chord_time) # 文字列に変換
 """
 0.0:0.07:N.C.
@@ -52,9 +52,10 @@ $ pip install pywfd
 ### WFDファイル書き込み
 ```python
 >>> import pywfd
->>> wfd_data = pywfd.load("./test.wfd")
->>> # wfd_data.spectrumStereo = []
->>> wfd.write("test.wfd", wfd_data)
+>>> bins_100 = pywfd.load("./test_bins_100.wfd")
+>>> bins_50 = pywfd.load("./test_bins_50.wfd")
+>>> bins_50.chords_raw = bins_100.chords_raw
+>>> pywfd.write("test.wfd", bins_50)
 ```
 
 

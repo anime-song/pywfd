@@ -75,12 +75,20 @@ class WFDData:
         self.setdata(lb.SPECTRUM_R, spectrum)
     
     @property
-    def chordresult(self):
+    def chords(self):
         return chordsplit.ChordSplit(
             self.getdata(
                 lb.CHORD_RESULT),
             bpm=self.tempo,
             bpm_offset=self.beat_offset)
+
+    @property
+    def chords_raw(self):
+        return self.get_raw_data(lb.CHORD_RESULT)
+        
+    @chords_raw.setter
+    def chords_raw(self, chords):
+        self.setdata(lb.CHORD_RESULT, chords)
 
     def setdata(self, key, data):
         self._loader.raw_data[key] = data
@@ -95,15 +103,11 @@ class WFDData:
 class WFD:
     def __init__(self):
         self._loader = io.WFDLoader()
-        self._writer = io.WFDWriter()
 
     def load(self, filepath):
         self._loader.open(filepath)
         self.wfd_data = WFDData(self._loader)
         return self.wfd_data
-
-    def write(self, file, wfd_data):
-        self._writer.write(file, wfd_data)
 
 
 def load(file):
@@ -112,3 +116,7 @@ def load(file):
     data = wfd.load(file)
 
     return data
+
+
+def write(file, data):
+    io.WFDWriter().write(file, data)

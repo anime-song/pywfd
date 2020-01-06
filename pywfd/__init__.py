@@ -5,3 +5,4 @@ from . import chordsplit
 from .chordsplit import number_to_chord
 from .chordsplit import chord_label
 from .wfd import load
+from .wfd import write
