@@ -104,3 +104,11 @@ class WFD:
 
     def write(self, file, wfd_data):
         self._writer.write(file, wfd_data)
+
+
+def load(file):
+    wfd = WFD()
+
+    data = wfd.load(file)
+
+    return data

@@ -3,6 +3,15 @@
 ## 概要
 wavetoneの独自フォーマットであるwfdをpythonで使える形にします。
 
+現在使用可能な物は以下の通りです。
+
+- 音声スペクトル(stereo) *1
+- 音声スペクトル(L-R) *1
+- 音声スペクトル(L+R) *1
+- 音声スペクトル(L) *1
+- 音声スペクトル(R) *1
+- コード検出結果
+
 ## インストール
 ```sh
 $ pip install pywfd
@@ -13,15 +22,13 @@ $ pip install pywfd
 
 ### WFDファイル読み込み
 ```python
->>> from pywfd import WFD
->>> wfd = WFD()
->>> wfd_data = wfd.load("./test.wfd")
+>>> import pywfd
+>>> wfd_data = pywfd.load("./test.wfd")
 ```
 ### スペクトルステレオ(音声スペクトル)
 ```python
->>> from pywfd import WFD
->>> wfd = WFD()
->>> wfd_data = wfd.load("./test.wfd")
+>>> import pywfd
+>>> wfd_data = pywfd.load("./test.wfd")
 >>> wfd_data.spectrumStereo
 >>> # wfd_data.spectrumLRM
 >>> # wfd_data.spectrumStereo = []
@@ -29,9 +36,9 @@ $ pip install pywfd
 
 ### コードラベル
 ```python
->>> from pywfd import WFD
->>> wfd = WFD()
->>> wfd_data = wfd.load("./test.wfd")
+>>> import pywfd
+>>> from pywfd import chord_label
+>>> wfd_data = pywfd.load("./test.wfd")
 >>> chord_time = wfd_data.chordresult.getChordLabel(ax=0.01) # axは解析する時間の頻度(秒)
 >>> label = chord_label(chord_time) # 文字列に変換
 """
@@ -44,9 +51,8 @@ $ pip install pywfd
 
 ### WFDファイル書き込み
 ```python
->>> from pywfd import WFD
->>> wfd = WFD()
->>> wfd_data = wfd.load("./test.wfd")
+>>> import pywfd
+>>> wfd_data = pywfd.load("./test.wfd")
 >>> # wfd_data.spectrumStereo = []
 >>> wfd.write("test.wfd", wfd_data)
 ```
