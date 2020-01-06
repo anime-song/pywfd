@@ -7,7 +7,7 @@ wavetoneの独自フォーマットであるwfdをpythonで使える形にしま
 ```sh
 $ pip install pywfd
 ```
-
+※ 最新バージョンのみ正常に動作します。
 
 ## 基本的な使い方
 
