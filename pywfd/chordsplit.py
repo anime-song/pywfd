@@ -133,7 +133,7 @@ class ChordSplit:
         Returns:
             {x: [start_time, end_time, chord]}
         """
-        music_len = int((self.bpm_offset / 1000) + (len(self.chord) * self.splittime))
+        music_len = (self.bpm_offset / 1000) + (len(self.chord) * self.splittime)
         time = 0.0
         result_chord = []
         result_times = []
@@ -141,11 +141,16 @@ class ChordSplit:
         chord_ = ""
         intime_ = -1
         count = 0
-        for i in range(int(music_len / ax)):
+        loopnum = int(round(music_len / ax))
+        for i in range(loopnum):
             try:
                 n_chord, ex, intime = self.frame(time)
             except ValueError:
                 break
+
+            if i == (loopnum - 1):
+                ex = False
+
             if not ex and intime != intime_:
                 result_times.append(time)
                 if len(result_times) == 2:
