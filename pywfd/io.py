@@ -215,6 +215,8 @@ class WFDLoader(Loader):
             elif k == lb.CHORD_RESULT:
                 v = v[16:]
                 result_data[k] = np.array(list(cp.splitindex(v, 48))[:-1])
+            elif k == lb.RHYTHM_KEYMAP:
+                result_data[k] = np.array(list(cp.splitindex(v, 3)))
             else:
                 result_data[k] = v
         self.wfd_data = result_data

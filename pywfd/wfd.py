@@ -1,4 +1,5 @@
 from pywfd import chordsplit
+from pywfd import rhythm_key
 from pywfd import io
 from pywfd import label as lb
 import numpy as np
@@ -10,7 +11,7 @@ class WFDData:
         self._loader.readHeader()
         self._loader.readIndex()
         self._loader.readData()
-        
+
         self.tempo = self._loader.headerA(lb.TEMPO)
         self.block_per_semitone = self._loader.headerA(lb.BLOCK_PER_SEMITONE)
         self.min_note = self._loader.headerA(lb.MIN_NOTE)
@@ -38,7 +39,7 @@ class WFDData:
     def spectrumLRM(self):
         """音声スペクトル(L-R)"""
         return self.getdata(lb.SPECTRUM_LR_M)
-    
+
     @spectrumLRM.setter
     def spectrumLRM(self, spectrum):
         spectrum = np.array(spectrum).flatten()
@@ -73,7 +74,7 @@ class WFDData:
     def spectrumR(self, spectrum):
         spectrum = np.array(spectrum).flatten()
         self.setdata(lb.SPECTRUM_R, spectrum)
-    
+
     @property
     def chords(self):
         return chordsplit.ChordSplit(
@@ -83,9 +84,19 @@ class WFDData:
             bpm_offset=self.beat_offset)
 
     @property
+    def rhythmkey(self):
+        return rhythm_key.RhythmKey(
+            self.getdata(
+                lb.RHYTHM_KEYMAP),
+            bpm=self.tempo,
+            bpm_offset=self.beat_offset,
+            chord=self.getdata(
+                lb.CHORD_RESULT))
+
+    @property
     def chords_raw(self):
         return self.get_raw_data(lb.CHORD_RESULT)
-        
+
     @chords_raw.setter
     def chords_raw(self, chords):
         self.setdata(lb.CHORD_RESULT, chords)
