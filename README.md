@@ -13,10 +13,6 @@ wavetoneの独自フォーマットであるwfdをpythonで使える形にしま
 - コード検出結果
 - キーラベル
 
-使用不可能なもの
-
-- 4/4拍子以外
-- BPMが途中で変更される場合
 
 ## インストール
 ```sh
@@ -45,7 +41,7 @@ $ pip install pywfd
 >>> import pywfd
 >>> from pywfd import chord_label
 >>> wfd_data = pywfd.load("./test.wfd")
->>> chord_time = wfd_data.chords.getChordLabel(ax=0.01) # axは解析する時間の頻度(秒)
+>>> chord_time = wfd_data.chords.chordLabel()
 >>> label = chord_label(chord_time) # 文字列に変換
 """
 0.0:0.07:N.C.
@@ -59,9 +55,18 @@ $ pip install pywfd
 ```python
 >>> import pywfd
 >>> wfd_data = pywfd.load("./test.wfd")
->>> key_label = wfd_data.rhythmkey.keyLabel()
+>>> key_label = wfd_data.chords.keyLabel()
 >>> key_label
 [[1.08, 16.34, 'Bb']]
+```
+
+### コードプロ形式変換
+```python
+>>> import pywfd
+>>> from pywfd import chord_label
+>>> wfd_data = pywfd.load("./test.wfd")
+>>> label = wfd_data.chords.chordLabel()
+>>> chordtext = chords.to_chordpro(indent=4)
 ```
 
 ### WFDファイル書き込み
@@ -71,6 +76,17 @@ $ pip install pywfd
 >>> bins_50 = pywfd.load("./test_bins_50.wfd")
 >>> bins_50.chords_raw = bins_100.chords_raw
 >>> pywfd.write("test.wfd", bins_50)
+```
+
+コード書き込み
+```python
+>>> import pywfd
+>>> wfd = pywfd.load("./test.wfd")
+>>> chords = wfd.chords
+>>> label = chords.chordLabel()
+>>> array = chords.label_to_array(label)
+>>> wfd.chords = array
+>>> pywfd.write("./test.wfd", wfd)
 ```
 
 

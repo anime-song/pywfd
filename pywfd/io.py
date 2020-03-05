@@ -5,7 +5,7 @@ import os.path
 import sys
 
 from pywfd import label as lb
-from pywfd import chordsplit as cp
+from pywfd import chord as cp
 
 
 class Writer:
@@ -217,6 +217,8 @@ class WFDLoader(Loader):
                 result_data[k] = np.array(list(cp.splitindex(v, 48))[:-1])
             elif k == lb.RHYTHM_KEYMAP:
                 result_data[k] = np.array(list(cp.splitindex(v, 3)))
+            elif k == lb.TEMPO_MAP:
+                result_data[k] = np.array(list(cp.splitindex(v, 2)))
             else:
                 result_data[k] = v
         self.wfd_data = result_data

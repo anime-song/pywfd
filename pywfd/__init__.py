@@ -1,9 +1,9 @@
 from . import wfd
 from . import io
-from . import chordsplit
+from . import chord
 
-from .chordsplit import number_to_chord
-from .chordsplit import chord_label
-from .rhythm_key import RhythmKey
+from .chord import number_to_chord
+from .chord import chord_label, label_to_chord
+from .rhythm import RhythmKey, TempoMap
 from .wfd import load
 from .wfd import write

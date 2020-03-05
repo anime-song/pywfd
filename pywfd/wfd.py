@@ -1,5 +1,5 @@
-from pywfd import chordsplit
-from pywfd import rhythm_key
+from pywfd import chord
+from pywfd import rhythm
 from pywfd import io
 from pywfd import label as lb
 import numpy as np
@@ -20,6 +20,23 @@ class WFDData:
         self.time_all_block = self._loader.headerA(lb.TIME_ALL_BLOCK)
         self.beat_offset = self._loader.headerA(lb.OFFSET)
         self.beat = self._loader.headerA(lb.BEAT)
+
+        self._rhythmkey = rhythm.RhythmKey(
+            self.getdata(
+                lb.RHYTHM_KEYMAP),
+            chord=self.getdata(
+                lb.CHORD_RESULT))
+
+        self._tempomap = rhythm.TempoMap(
+            self.getdata(
+                lb.TEMPO_MAP),
+            rhythmkey=self.rhythmkey,
+            beat_offset=self.beat_offset)
+
+        self._chords = chord.ChordSplit(
+            self.getdata(
+                lb.CHORD_RESULT),
+            rhythm=rhythm.Rhythm(self.tempomap, self.rhythmkey))
 
     @property
     def loader(self):
@@ -77,21 +94,21 @@ class WFDData:
 
     @property
     def chords(self):
-        return chordsplit.ChordSplit(
-            self.getdata(
-                lb.CHORD_RESULT),
-            bpm=self.tempo,
-            bpm_offset=self.beat_offset)
+        return self._chords
+
+    @chords.setter
+    def chords(self, chords):
+        verify = np.array(self.chords_raw)
+        chords = np.concatenate((verify[:16], np.array(chords).flatten(), verify[-48:])).astype("uint8")
+        self.setdata(lb.CHORD_RESULT, chords)
 
     @property
     def rhythmkey(self):
-        return rhythm_key.RhythmKey(
-            self.getdata(
-                lb.RHYTHM_KEYMAP),
-            bpm=self.tempo,
-            bpm_offset=self.beat_offset,
-            chord=self.getdata(
-                lb.CHORD_RESULT))
+        return self._rhythmkey
+
+    @property
+    def tempomap(self):
+        return self._tempomap
 
     @property
     def chords_raw(self):
