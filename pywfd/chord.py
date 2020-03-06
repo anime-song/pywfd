@@ -201,7 +201,7 @@ class ChordSplit:
         offset = 0
 
         if min_time - label[0][0] > duration:
-            label[0][0] += (duration - (min_time - label[0][0]))
+            label[0][0] += abs(min_time - label[0][0])
 
         for i in range(len(self.chord)):
             if len(label) <= offset:
