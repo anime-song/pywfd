@@ -1,5 +1,6 @@
 import os
 import dlchord
+from dlchord import Chord
 
 chord_quality = {
     0: "",
@@ -57,7 +58,7 @@ def number_to_chord(chord_num, is_input=False, on_chord=False):
     return chord_tone[pitch] + chord_quality[name]
 
 
-def chord_to_array(chord):
+def chord_to_array(chord, tension=True):
     chord_array = [0] * 48
     if chord == '':
         return chord_array
@@ -70,12 +71,32 @@ def chord_to_array(chord):
     chord_num = 11
 
     try:
-        chord = dlchord.Chord(chord)
+        chord = Chord(chord)
     except ValueError:
         return chord_array
-    chord_num += chord.root
 
     quality = chord.quality.quality
+
+    if tension:
+        if chord.bass == chord.root:
+            if "b9" in quality:
+                if "m" in quality:
+                    chord = Chord(Chord(tones[chord.root] + "7").transpose(3).chord + "/" + tones[chord.root])
+                else:
+                    chord = Chord(Chord(tones[chord.root] + "dim7").transpose(4).chord + "/" + tones[chord.root])
+            elif "9" in quality and "add" not in quality and "sus" not in quality and "#9" not in quality:
+                if "m" in quality and "M" not in quality:
+                    chord = Chord(Chord(tones[chord.root] + "M7").transpose(3).chord + "/" + tones[chord.root])
+                elif "M" in quality:
+                    chord = Chord(Chord(tones[chord.root] + "m7").transpose(4).chord + "/" + tones[chord.root])
+                else:
+                    chord = Chord(Chord(tones[chord.root] + "m7-5").transpose(4).chord + "/" + tones[chord.root])
+            elif "11" in quality:
+                if "m" in quality:
+                    chord = Chord(Chord(tones[chord.root] + "add9").transpose(3).chord + "/" + tones[chord.root])
+
+    quality = chord.quality.quality
+    chord_num += chord.root
 
     sorted_quality = sorted(chord_quality.items(), key=lambda x: len(x[1]), reverse=True)
     for idx, qua in sorted_quality:
