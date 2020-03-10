@@ -251,7 +251,7 @@ class ChordSplit:
         for i, chord in enumerate(self.chord, start=1):
             if form:
                 try:
-                    chord = dlchord.note_to_chord(dlchord.Chord(chord).getNotes())[0].chord
+                    chord = dlchord.Chord(chord).modify()
                 except ValueError:
                     pass
                 

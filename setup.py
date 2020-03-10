@@ -2,9 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
     name="pywfd",
-    version="1.1.7",
+    version="1.2.0",
     description="A library to handle wfd in python.",
-    install_requires=["numpy", "pandas", "dlchord"],
+    install_requires=["numpy", "dlchord"],
     author="anime-song",
     url="https://github.com/anime-song/wfdload",
     license="MIT",

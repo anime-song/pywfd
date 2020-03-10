@@ -12,14 +12,21 @@ class WFDData:
         self._loader.readIndex()
         self._loader.readData()
 
-        self.tempo = self._loader.headerA(lb.TEMPO)
-        self.block_per_semitone = self._loader.headerA(lb.BLOCK_PER_SEMITONE)
-        self.min_note = self._loader.headerA(lb.MIN_NOTE)
-        self.range_of_scale = self._loader.headerA(lb.RANGE_OF_SCALE)
-        self.block_per_second = self._loader.headerA(lb.BLOCK_PER_SECOND)
-        self.time_all_block = self._loader.headerA(lb.TIME_ALL_BLOCK)
-        self.beat_offset = self._loader.headerA(lb.OFFSET)
-        self.beat = self._loader.headerA(lb.BEAT)
+        self.tempo = self._loader.headers[self._loader.headerA(
+            lb.TEMPO, method="DATATYPE")].value
+        self.block_per_semitone = self._loader.headers[self._loader.headerA(
+            lb.BLOCK_PER_SEMITONE, method="DATATYPE")].value
+        self.min_note = self._loader.headers[self._loader.headerA(
+            lb.MIN_NOTE, method="DATATYPE")].value
+        self.range_of_scale = self._loader.headers[self._loader.headerA(
+            lb.RANGE_OF_SCALE, method="DATATYPE")].value
+        self.block_per_second = self._loader.headers[self._loader.headerA(
+            lb.BLOCK_PER_SECOND, method="DATATYPE")].value
+        self.time_all_block = self._loader.headers[self._loader.headerA(
+            lb.TIME_ALL_BLOCK, method="DATATYPE")].value
+        self.beat_offset = self._loader.headers[self._loader.headerA(lb.OFFSET, method="DATATYPE")].value
+        self.beat = self._loader.headers[self._loader.headerA(
+            lb.BEAT, method="DATATYPE")].value
 
         self._rhythmkey = rhythm.RhythmKey(
             self.getdata(

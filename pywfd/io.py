@@ -1,4 +1,3 @@
-from pandas import DataFrame
 import numpy as np
 import struct
 import os.path
@@ -42,15 +41,14 @@ class WFDWriter(Writer):
         super().__init__()
 
     def parse_wfd(self, wfd_data):
-        header_offset, index_offset, data_offset = wfd_data.loader.getInfo()
+        header_offset, index_offset, data_offset = wfd_data.loader.info()
         result = {}
         for k, v in header_offset.items():
-            result[v[0]] = [wfd_data.loader.headerA(k, "DATATYPE", "VALUE"), v[1]]
+            result[v[0]] = [wfd_data.loader.headers[wfd_data.loader.headerA(k, "DATATYPE")].value, v[1]]
 
         for k, v in index_offset.items():
             for v_list in v:
-                result[v_list[0]] = [wfd_data.loader.indexA(
-                    k, "DATATYPE", v_list[2]), v_list[1]]
+                result[v_list[0]] = [wfd_data.loader.indexes[wfd_data.loader.indexA(k, "DATATYPE")].search(v_list[2]), v_list[1]]
 
         for k, v in data_offset.items():
             result[v[0]] = [wfd_data.get_raw_data(k), v[1]]
@@ -62,54 +60,133 @@ class WFDWriter(Writer):
         with open(file, 'wb') as f:
             for offset, value in write_data.items():
                 f.seek(offset)
-                if type(value[0]) is np.int64:
-                    value[0] = int(value[0])
-
-                    f.write(value[0].to_bytes(
-                            struct.calcsize(value[1]), byteorder=sys.byteorder))
-                elif type(value[0]) is np.ndarray:
+                if type(value[0]) is np.ndarray:
                     value[0] = bytearray(value[0])
                     f.write(value[0])
+                else:
+                    value[0] = int(value[0])
+
+                    f.write(
+                        value[0].to_bytes(
+                            struct.calcsize(
+                                value[1]),
+                            byteorder=sys.byteorder))
 
 
+class WFDHeader:
+    def __init__(self, datatype, datanum, value):
+        self._datatype = datatype
+        self._datanum = datanum
+        self._value = value
+
+    @property
+    def datatype(self):
+        return self._datatype
+
+    @property
+    def datanum(self):
+        return self._datanum
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+
+
+class WFDIndex:
+    def __init__(self, datatype, datanum, datasize, dataformat, index):
+        self._datatype = datatype
+        self._datanum = datanum
+        self._datasize = datasize
+        self._dataformat = dataformat
+        self._index = index
+
+    @property
+    def datatype(self):
+        return self._datatype
+
+    @property
+    def datanum(self):
+        return self._datanum
+
+    @property
+    def datasize(self):
+        return self._datasize
+
+    @datasize.setter
+    def datasize(self, datasize):
+        self._datasize = datasize
+
+    @property
+    def dataformat(self):
+        return self._dataformat
+
+    @property
+    def index(self):
+        return self._index
+
+    @index.setter
+    def index(self, index):
+        self._index = index
+
+    def search(self, key):
+        if key == "DATATYPE":
+            return self._datatype
+        elif key == "DATANUM":
+            return self._datanum
+        elif key == "DATASIZE":
+            return self._datasize
+        elif key == "DATAFORMAT":
+            return self._dataformat
+        elif key == "INDEX":
+            return self._index
+
+        
 class WFDLoader(Loader):
     def __init__(self):
         super().__init__()
-        self.headers = DataFrame([
-            [lb.FILETYPE, 0, 0],
-            [lb.RESERVE_SPACE1, 1, 0],
-            [lb.RESERVE_SPACE2, 2, 0],
-            [lb.BLOCK_PER_SEMITONE, 3, 0],
-            [lb.MIN_NOTE, 4, 0],
-            [lb.RANGE_OF_SCALE, 5, 0],
-            [lb.BLOCK_PER_SECOND, 6, 0],
-            [lb.RESERVE_SPACE3, 7, 0],
-            [lb.TIME_ALL_BLOCK, 8, 0],
-            [lb.BITS_OF_GRAPH, 9, 0],
-            [lb.BEAT_DISPLAY_FLAG, 10, 0],
-            [lb.TEMPO, 11, 0],
-            [lb.OFFSET, 12, 0],
-            [lb.BEAT, 13, 0]],
-            columns=["DATATYPE", "DATANUM", "VALUE"])
-        self.indexes = DataFrame([
-            [lb.DATASIZE, -1, 0, "I", -1],
-            [lb._, 0, 0, "H", 0],
-            [lb.TEMPO_RESULT, 2, 0, "I", 0],
-            [lb.EXTEND_INFO, 4, 0, "I", 0],
-            [lb.LABEL_LIST, 6, 0, "I", 0],
-            [lb.SPECTRUM_STEREO, 7, 0, "H", 0],
-            [lb.SPECTRUM_LR_M, 8, 0, "H", 0],
-            [lb.SPECTRUM_LR_P, 9, 0, "H", 0],
-            [lb.SPECTRUM_L, 10, 0, "H", 0],
-            [lb.SPECTRUM_R, 11, 0, "H", 0],
-            [lb.TEMPO_MAP, 12, 0, "I", 0],
-            [lb.CHORD_RESULT, 14, 0, "B", 0],
-            [lb.RHYTHM_KEYMAP, 15, 0, "I", 0],
-            [lb.NOTE_LIST, 16, 0, "I", 0],
-            [lb.TEMPO_VOLUME, 17, 0, "I", 0],
-            [lb.FREQUENCY, 18, 0, "I", 0],
-            [lb.TRACK_SETTING, 19, 0, "I", 0]],
-            columns=["DATATYPE", "DATANUM", "DATASIZE", "DATAFORMAT", "INDEX"])
+        self.headers = [
+            WFDHeader(lb.FILETYPE, 0, 0),
+            WFDHeader(lb.RESERVE_SPACE1, 1, 0),
+            WFDHeader(lb.RESERVE_SPACE2, 2, 0),
+            WFDHeader(lb.BLOCK_PER_SEMITONE, 3, 0),
+            WFDHeader(lb.MIN_NOTE, 4, 0),
+            WFDHeader(lb.RANGE_OF_SCALE, 5, 0),
+            WFDHeader(lb.BLOCK_PER_SECOND, 6, 0),
+            WFDHeader(lb.RESERVE_SPACE3, 7, 0),
+            WFDHeader(lb.TIME_ALL_BLOCK, 8, 0),
+            WFDHeader(lb.BITS_OF_GRAPH, 9, 0),
+            WFDHeader(lb.BEAT_DISPLAY_FLAG, 10, 0),
+            WFDHeader(lb.TEMPO, 11, 0),
+            WFDHeader(lb.OFFSET, 12, 0),
+            WFDHeader(lb.BEAT, 13, 0)
+        ]
+        self.indexes = [
+            WFDIndex(lb.DATASIZE, -1, 0, "I", -1),
+            WFDIndex(lb._, 0, 0, "H", 0),
+            WFDIndex(lb.TEMPO_RESULT, 2, 0, "I", 0),
+            WFDIndex(lb.EXTEND_INFO, 4, 0, "I", 0),
+            WFDIndex(lb.LABEL_LIST, 6, 0, "I", 0),
+            WFDIndex(lb.SPECTRUM_STEREO, 7, 0, "H", 0),
+            WFDIndex(lb.SPECTRUM_LR_M, 8, 0, "H", 0),
+            WFDIndex(lb.SPECTRUM_LR_P, 9, 0, "H", 0),
+            WFDIndex(lb.SPECTRUM_L, 10, 0, "H", 0),
+            WFDIndex(lb.SPECTRUM_R, 11, 0, "H", 0),
+            WFDIndex(lb.TEMPO_MAP, 12, 0, "I", 0),
+            WFDIndex(lb.CHORD_RESULT, 14, 0, "B", 0),
+            WFDIndex(lb.RHYTHM_KEYMAP, 15, 0, "I", 0),
+            WFDIndex(lb.NOTE_LIST, 16, 0, "I", 0),
+            WFDIndex(lb.TEMPO_VOLUME, 17, 0, "I", 0),
+            WFDIndex(lb.FREQUENCY, 18, 0, "I", 0),
+            WFDIndex(lb.TRACK_SETTING, 19, 0, "I", 0)
+        ]
+
+        self.headers = sorted(self.headers, key=lambda x: x.datanum)
+        self.indexes = sorted(self.indexes, key=lambda x: x.datanum)
+
         self.wfd_data = {}
 
         self.header_offset = {}
@@ -123,14 +200,6 @@ class WFDLoader(Loader):
     def __indexes__(self):
         return self.indexes
 
-    @property
-    def headerlen(self):
-        return len(self.headers.index)
-
-    @property
-    def indexeslen(self):
-        return len(self.indexes.index)
-
     def open(self, filepath):
         _, ext = os.path.splitext(filepath)
         if ext.lower() != ".wfd":
@@ -138,73 +207,72 @@ class WFDLoader(Loader):
 
         self._buffer = open(filepath, 'rb').read()
         
-    def getInfo(self):
+    def info(self):
         return self.header_offset, self.index_offset, self.data_offset
 
     def readHeader(self):
         """Headerを読み込みます"""
         
-        for i in range(self.headerlen):
-            self.header_offset[self.headerA(
-                i, "DATANUM", "DATATYPE")] = [self.offset, self.header_format]
-            data = self.unpack(
-                self.buffer, self.header_format, 1, self.offset)
-            self.headers.loc[(self.headers["DATANUM"] == i), "VALUE"] = data[0]
+        for i in range(len(self.headers)):
+            self.header_offset[self.headers[self.headerA(i)].datatype] = [self.offset, self.header_format]
+            data = self.unpack(self.buffer, self.header_format, 1, self.offset)
+            self.headers[self.headerA(i)].value = data[0]
 
         return self.headers
 
     def readIndex(self):
         """Indexを読み込みます"""
-        if self.offset >= (struct.calcsize(self.header_format) * self.headerlen):
+        if self.offset >= (struct.calcsize(self.header_format) * len(self.headers)):
             counter = 1
-            for i in self.indexes["DATANUM"]:
-                if i == -1:
+            start_index = self.indexA(-1)
+            for i in range(len(self.indexes)):
+                if self.indexes[i].datanum == -1:
                     offset = self.offset
-                    data = self.unpack(
-                        self.buffer, self.index_format, 1, self.offset)
-                    self.indexes.loc[(self.indexes["DATANUM"] == -1), "DATASIZE"] = data[0]
-                    self.index_offset[self.indexA(-1,
-                                                  "DATANUM",
-                                                  "DATATYPE")] = [[offset,
-                                                                  self.index_format, "DATASIZE"]]
+                    data = self.unpack(self.buffer, self.index_format, 1, self.offset)
+                    self.indexes[start_index].datasize = data[0]
+                    self.index_offset[self.indexes[start_index].datatype] = [
+                        [offset, self.index_format, "DATASIZE"]]
                 else:
-                    if self.indexA(-1, "DATANUM", "DATASIZE") < counter:
+                    if self.indexes[start_index].datasize < counter:
                         continue
                     
                     datanumber_offset = self.offset
                     datanumber = self.unpack(self.buffer, self.index_format, 1, self.offset)[0]
+                    datanumber = self.indexA(datanumber)
 
                     datasize_offset = self.offset
                     datasize = self.unpack(self.buffer, self.index_format, 1, self.offset)[0]
 
-                    self.index_offset[self.indexA(datanumber, "DATANUM", "DATATYPE")] = [[
-                        datanumber_offset, self.index_format, "DATANUM"], [
-                        datasize_offset, self.index_format, "DATASIZE"]]
+                    self.index_offset[self.indexes[datanumber].datatype] = [
+                        [datanumber_offset, self.index_format, "DATANUM"],
+                        [datasize_offset, self.index_format, "DATASIZE"]
+                    ]
 
-                    self.indexes.loc[(self.indexes["DATANUM"] == datanumber), "DATASIZE"] = datasize
-                    self.indexes.loc[(self.indexes["DATANUM"] == datanumber), "INDEX"] = counter
+                    self.indexes[datanumber].datasize = datasize
+                    self.indexes[datanumber].index = counter
                     
                     counter += 1
-                    
-            self.indexes.sort_values("INDEX", inplace=True)
+            
+            self.indexes = sorted(self.indexes, key=lambda x: x.index)
         return self.indexes
 
     def readData(self):
         """データを読み込みます"""
-        bps = self.headerA(lb.BLOCK_PER_SEMITONE, "DATATYPE", "VALUE")
-        range_scale = self.headerA(lb.RANGE_OF_SCALE, "DATATYPE", "VALUE")
-        time_all_block = self.headerA(lb.TIME_ALL_BLOCK, "DATATYPE", "VALUE")
+        bps = self.headers[self.headerA(lb.BLOCK_PER_SEMITONE, "DATATYPE")].value
+        range_scale = self.headers[self.headerA(lb.RANGE_OF_SCALE, "DATATYPE")].value
+        time_all_block = self.headers[self.headerA(lb.TIME_ALL_BLOCK, "DATATYPE")].value
         freq_all_block = bps * range_scale
         data = {}
 
-        for dtype in self.indexes["DATATYPE"]:
-            if self.indexA(dtype, "DATATYPE", "INDEX") <= 0:
+        for i in range(len(self.indexes)):
+            dtype = self.indexes[i]._datatype
+            if self.indexes[i].index <= 0:
                 data[dtype] = []
                 continue
 
-            self.data_offset[dtype] = [self.offset, self.indexA(dtype, "DATATYPE", "DATAFORMAT")]
-            datasize = self.indexA(dtype, "DATATYPE", "DATASIZE")
-            dataformat = self.indexA(dtype, "DATATYPE", "DATAFORMAT")
+            self.data_offset[dtype] = [self.offset, self.indexes[i].dataformat]
+            datasize = self.indexes[i].datasize
+            dataformat = self.indexes[i].dataformat
                 
             data[dtype] = self.unpack(self.buffer, dataformat, int(datasize / struct.calcsize(dataformat)), self.offset)
 
@@ -230,11 +298,20 @@ class WFDLoader(Loader):
         data = np.array(x / 65535.0, dtype="float32")
         return np.reshape(data, (time_all_block, freq_all_block))
 
-    def headerA(self, x_key, x="DATATYPE", y="VALUE"):
-        return self.headers.loc[(self.headers[x] == x_key), y].values[0]
+    def headerA(self, key, method="DATANUM"):
+        for i in range(len(self.headers)):
+            if method == "DATANUM":
+                if self.headers[i].datanum == key:
+                    return i
+            elif method == "DATATYPE":
+                if self.headers[i].datatype == key:
+                    return i
 
-    def headerB(self, x, y):
-        self.headers.loc[(self.headers["DATATYPE"] == x), "VALUE"] = y
-
-    def indexA(self, x_key, x, y):
-        return self.indexes.loc[(self.indexes[x] == x_key), y].values[0]
+    def indexA(self, key, method="DATANUM"):
+        for i in range(len(self.indexes)):
+            if method == "DATANUM":
+                if self.indexes[i].datanum == key:
+                    return i
+            elif method == "DATATYPE":
+                if self.indexes[i].datatype == key:
+                    return i
