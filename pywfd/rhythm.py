@@ -82,6 +82,9 @@ class Rhythm:
 
         return times + (self.beat_offset / 1000)
 
+    def musickey(self, index):
+        return self.rhythmkey.rhythm_key_map[index][1]
+
     def tempo(self, index):
         return self.tempomap.tempomap[index]
 

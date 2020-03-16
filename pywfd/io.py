@@ -44,21 +44,22 @@ class WFDWriter(Writer):
         header_offset, index_offset, data_offset = wfd_data.loader.info()
         result = {}
         for k, v in header_offset.items():
-            result[v[0]] = [wfd_data.loader.headers[wfd_data.loader.headerA(k, "DATATYPE")].value, v[1]]
+            header = wfd_data.loader.headers[wfd_data.loader.headerA(k, "DATATYPE")]
+            result[v[0]] = [header.value, v[1]]
 
         for k, v in index_offset.items():
             for v_list in v:
-                result[v_list[0]] = [wfd_data.loader.indexes[wfd_data.loader.indexA(k, "DATATYPE")].search(v_list[2]), v_list[1]]
+                index = wfd_data.loader.indexes[wfd_data.loader.indexA(k, "DATATYPE")]
+                result[v_list[0]] = [index.search(v_list[2]), v_list[1]]
 
         for k, v in data_offset.items():
             result[v[0]] = [wfd_data.get_raw_data(k), v[1]]
         return result
 
     def write(self, file, wfd_data):
-        write_data = self.parse_wfd(wfd_data)
-
+        write_data = sorted(self.parse_wfd(wfd_data).items(), key=lambda x: x[0])
         with open(file, 'wb') as f:
-            for offset, value in write_data.items():
+            for offset, value in write_data:
                 f.seek(offset)
                 if type(value[0]) is np.ndarray:
                     value[0] = bytearray(value[0])
@@ -209,6 +210,21 @@ class WFDLoader(Loader):
         
     def info(self):
         return self.header_offset, self.index_offset, self.data_offset
+
+    def shift_offset(self, datatype, shift_value):
+        shift = self.data_offset[datatype][0]
+        data = self.indexes[self.indexA(datatype, "DATATYPE")]
+        datasize = data.datasize
+        data.datasize = shift_value
+        shift_value = abs(datasize - shift_value)
+        data_offset = {}
+        for dtype, value in self.data_offset.items():
+            offset = value[0]
+            if offset > shift:
+                value[0] += shift_value
+            data_offset[dtype] = value
+
+        self.data_offset = data_offset
 
     def readHeader(self):
         """Headerを読み込みます"""

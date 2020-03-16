@@ -5,5 +5,6 @@ from . import chord
 from .chord import number_to_chord
 from .chord import chord_label, label_to_chord
 from .rhythm import RhythmKey, TempoMap
+from .label import Label, LabelSplit
 from .wfd import load
 from .wfd import write

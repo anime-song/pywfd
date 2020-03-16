@@ -28,6 +28,7 @@ class WFDData:
         self.beat = self._loader.headers[self._loader.headerA(
             lb.BEAT, method="DATATYPE")].value
 
+        self.label_list = lb.Label(self.getdata(lb.LABEL_LIST))
         self._rhythmkey = rhythm.RhythmKey(
             self.getdata(
                 lb.RHYTHM_KEYMAP),
@@ -43,7 +44,8 @@ class WFDData:
         self._chords = chord.ChordSplit(
             self.getdata(
                 lb.CHORD_RESULT),
-            rhythm=rhythm.Rhythm(self.tempomap, self.rhythmkey))
+            rhythm=rhythm.Rhythm(self.tempomap, self.rhythmkey),
+            label=self.label_list)
 
     @property
     def loader(self):
@@ -108,6 +110,9 @@ class WFDData:
         verify = np.array(self.chords_raw)
         chords = np.concatenate((verify[:16], np.array(chords).flatten(), verify[-48:])).astype("uint8")
         self.setdata(lb.CHORD_RESULT, chords)
+        label = np.array(self.chords.label.to_array()).astype("uint32")
+        self.setdata(lb.LABEL_LIST, label)
+        self._loader.shift_offset(lb.LABEL_LIST, int(len(label) * 4))
 
     @property
     def rhythmkey(self):

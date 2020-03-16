@@ -1,6 +1,7 @@
 import os
 import dlchord
 from dlchord import Chord
+from pywfd import label as lb
 
 chord_quality = {
     0: "",
@@ -136,11 +137,20 @@ def label_to_chord(label, sep=':'):
     return times
 
 
+def is_wavetone_chord(chord):
+    tension = ["9", "13", "11", "M7-5", "aug7", "augM7"]
+    if any([t in chord for t in tension]):
+        return False
+    else:
+        return True
+
+
 class ChordSplit:
-    def __init__(self, chord, rhythm):
+    def __init__(self, chord, rhythm, label):
         self._raw_chord = chord
-        self._chord = self._raw_chord_to_chord(self._raw_chord)
         self.rhythm = rhythm
+        self.label = label
+        self._chord = self._raw_chord_to_chord(self._raw_chord)
         self.tempo = self.rhythm.tempo(0)
         self.beat_offset = self.rhythm.beat_offset / 1000
 
@@ -155,7 +165,10 @@ class ChordSplit:
     def _raw_chord_to_chord(self, raw_chord):
         chord = []
         for i in range(len(raw_chord)):
-            chord.append(self._split(i))
+            parse_chord = self._split(i)
+            if parse_chord != "" and parse_chord != "N.C.":
+                parse_chord = dlchord.Chord(parse_chord).modify(key=tones[self.rhythm.musickey(i)]).chord
+            chord.append(parse_chord)
 
         return chord
 
@@ -227,13 +240,18 @@ class ChordSplit:
         for i in range(len(self.chord)):
             if len(label) <= offset:
                 break
-
+            
             duration = abs(self.rhythm.time(i) - self.rhythm.time(i + 1))
 
             dist = abs(self.rhythm.time(i) - label[offset][0])
             if dist < duration:
                 if dist <= abs(self.rhythm.time(i + 1) - label[offset][0]):
                     chordlist.append(chord_to_array(label[offset][-1]))
+                    if not is_wavetone_chord(label[offset][-1]):
+                        c_label = lb.LabelSplit()
+                        c_label.setTime(int(self.rhythm.time(i) * 1000))
+                        c_label.setLabel(label[offset][-1])
+                        self.label.append(c_label)
                     offset += 1
                 else:
                     chordlist.append(chord_to_array(''))
@@ -242,7 +260,7 @@ class ChordSplit:
 
         return chordlist
 
-    def to_chordpro(self, indent=4, form=True):
+    def to_chordpro(self, indent=4, form=True, common=True):
         chordtext = ""
         measure = -1
         time = 0
@@ -251,7 +269,7 @@ class ChordSplit:
         for i, chord in enumerate(self.chord, start=1):
             if form:
                 try:
-                    chord = dlchord.Chord(chord).modify()
+                    chord = dlchord.Chord(chord).modify(key=tones[self.rhythm.musickey(i)], common=common)
                 except ValueError:
                     pass
                 
