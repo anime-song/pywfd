@@ -260,7 +260,7 @@ class ChordSplit:
 
         return chordlist
 
-    def to_chordpro(self, indent=4, form=True, common=True):
+    def to_chordpro(self, indent=4, form=True, advanced=False):
         chordtext = ""
         measure = -1
         time = 0
@@ -269,7 +269,7 @@ class ChordSplit:
         for i, chord in enumerate(self.chord, start=1):
             if form:
                 try:
-                    chord = dlchord.Chord(chord).modify(key=tones[self.rhythm.musickey(i)], common=common)
+                    chord = dlchord.Chord(chord).modify(key=tones[self.rhythm.musickey(i)], advanced=advanced)
                 except ValueError:
                     pass
                 
