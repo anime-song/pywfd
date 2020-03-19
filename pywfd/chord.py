@@ -166,7 +166,7 @@ class ChordSplit:
         chord = []
         for i in range(len(raw_chord)):
             parse_chord = self._split(i)
-            if parse_chord != "" and parse_chord != "N.C.":
+            if parse_chord != "" and parse_chord != "N.C." and self.rhythm.musickey(i) != 12:
                 parse_chord = dlchord.Chord(parse_chord).modify(key=tones[self.rhythm.musickey(i)]).chord
             chord.append(parse_chord)
 
@@ -269,7 +269,8 @@ class ChordSplit:
         for i, chord in enumerate(self.chord, start=1):
             if form:
                 try:
-                    chord = dlchord.Chord(chord).modify(key=tones[self.rhythm.musickey(i)], advanced=advanced)
+                    if self.rhythm.musickey(i - 1) != 12:
+                        chord = dlchord.Chord(chord).modify(key=tones[self.rhythm.musickey(i - 1)], advanced=advanced)
                 except ValueError:
                     pass
                 
