@@ -15,13 +15,13 @@ class WFDData:
         self.tempo = self._loader.headers[self._loader.headerA(
             lb.TEMPO, method="DATATYPE")].value
         self.block_per_semitone = self._loader.headers[self._loader.headerA(
-            lb.BLOCK_PER_SEMITONE, method="DATATYPE")].value
+            lb.BLOCKS_PER_SEMITONE, method="DATATYPE")].value
         self.min_note = self._loader.headers[self._loader.headerA(
             lb.MIN_NOTE, method="DATATYPE")].value
         self.range_of_scale = self._loader.headers[self._loader.headerA(
             lb.RANGE_OF_SCALE, method="DATATYPE")].value
         self.block_per_second = self._loader.headers[self._loader.headerA(
-            lb.BLOCK_PER_SECOND, method="DATATYPE")].value
+            lb.BLOCKS_PER_SECOND, method="DATATYPE")].value
         self.time_all_block = self._loader.headers[self._loader.headerA(
             lb.TIME_ALL_BLOCK, method="DATATYPE")].value
         self.beat_offset = self._loader.headers[self._loader.headerA(lb.OFFSET, method="DATATYPE")].value
@@ -47,6 +47,12 @@ class WFDData:
             rhythm=rhythm.Rhythm(self.tempomap, self.rhythmkey),
             label=self.label_list)
 
+    
+    def _to_spect(x):
+        x = x / np.max(x)
+        x = x * np.iinfo(np.uint16)
+        return np.array(spectrum).flatten().astype("uint16")
+    
     @property
     def loader(self):
         return self._loader
@@ -58,7 +64,7 @@ class WFDData:
 
     @spectrumStereo.setter
     def spectrumStereo(self, spectrum):
-        spectrum = np.array(spectrum).flatten()
+        spectrum = _to_spect(spectrum)
         self.setdata(lb.SPECTRUM_STEREO, spectrum)
 
     @property
@@ -68,7 +74,7 @@ class WFDData:
 
     @spectrumLRM.setter
     def spectrumLRM(self, spectrum):
-        spectrum = np.array(spectrum).flatten()
+        spectrum = _to_spect(spectrum)
         self.setdata(lb.SPECTRUM_LR_M, spectrum)
 
     @property
@@ -78,7 +84,7 @@ class WFDData:
 
     @spectrumLRP.setter
     def spectrumLRP(self, spectrum):
-        spectrum = np.array(spectrum).flatten()
+        spectrum = _to_spect(spectrum)
         self.setdata(lb.SPECTRUM_LR_P, spectrum)
 
     @property
@@ -88,7 +94,7 @@ class WFDData:
 
     @spectrumL.setter
     def spectrumL(self, spectrum):
-        spectrum = np.array(spectrum).flatten()
+        spectrum = _to_spect(spectrum)
         self.setdata(lb.SPECTRUM_L, spectrum)
 
     @property
@@ -98,7 +104,7 @@ class WFDData:
 
     @spectrumR.setter
     def spectrumR(self, spectrum):
-        spectrum = np.array(spectrum).flatten()
+        spectrum = _to_spect(spectrum)
         self.setdata(lb.SPECTRUM_R, spectrum)
 
     @property

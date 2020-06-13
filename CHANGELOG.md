@@ -1,3 +1,8 @@
+## 1.2.4
+- BLOCK_PER_SEMITONE -> BLOCKS_PER_SEMITONEに変更
+- BLOCK_PER_SECOND -> BLOCKS_PER_SECONDに変更
+- その他バグの修正。
+
 ## 1.2.3
 - バグの修正。
 

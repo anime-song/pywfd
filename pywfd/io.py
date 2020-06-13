@@ -153,10 +153,10 @@ class WFDLoader(Loader):
             WFDHeader(lb.FILETYPE, 0, 0),
             WFDHeader(lb.RESERVE_SPACE1, 1, 0),
             WFDHeader(lb.RESERVE_SPACE2, 2, 0),
-            WFDHeader(lb.BLOCK_PER_SEMITONE, 3, 0),
+            WFDHeader(lb.BLOCKS_PER_SEMITONE, 3, 0),
             WFDHeader(lb.MIN_NOTE, 4, 0),
             WFDHeader(lb.RANGE_OF_SCALE, 5, 0),
-            WFDHeader(lb.BLOCK_PER_SECOND, 6, 0),
+            WFDHeader(lb.BLOCKS_PER_SECOND, 6, 0),
             WFDHeader(lb.RESERVE_SPACE3, 7, 0),
             WFDHeader(lb.TIME_ALL_BLOCK, 8, 0),
             WFDHeader(lb.BITS_OF_GRAPH, 9, 0),
@@ -274,7 +274,7 @@ class WFDLoader(Loader):
 
     def readData(self):
         """データを読み込みます"""
-        bps = self.headers[self.headerA(lb.BLOCK_PER_SEMITONE, "DATATYPE")].value
+        bps = self.headers[self.headerA(lb.BLOCKS_PER_SEMITONE, "DATATYPE")].value
         range_scale = self.headers[self.headerA(lb.RANGE_OF_SCALE, "DATATYPE")].value
         time_all_block = self.headers[self.headerA(lb.TIME_ALL_BLOCK, "DATATYPE")].value
         freq_all_block = bps * range_scale

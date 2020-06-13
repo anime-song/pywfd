@@ -162,17 +162,17 @@ class ChordSplit:
     def chord(self):
         return self._chord
 
-    def _raw_chord_to_chord(self, raw_chord):
+    def _raw_chord_to_chord(self, raw_chord, advanced=False):
         chord = []
         for i in range(len(raw_chord)):
             parse_chord = self._split(i)
             if parse_chord != "" and parse_chord != "N.C." and self.rhythm.musickey(i) != 12:
-                parse_chord = dlchord.Chord(parse_chord).modify(key=tones[self.rhythm.musickey(i)]).chord
+                parse_chord = dlchord.Chord(parse_chord).modify(tones[self.rhythm.musickey(i)], advanced=advanced).chord
             chord.append(parse_chord)
 
         return chord
 
-    def chordLabel(self):
+    def chordLabel(self, advanced=False):
         """[summary]
         
         Returns:
@@ -186,6 +186,9 @@ class ChordSplit:
         now_chord = ""
         for i in range(len(self.chord)):
             now_chord = self.chord[i]
+
+            if now_chord != '' and now_chord != "N.C.":
+                now_chord = dlchord.Chord(now_chord).modify(tones[self.rhythm.musickey(i)], advanced=advanced).chord
 
             if i == 0:
                 chord = now_chord
@@ -270,7 +273,7 @@ class ChordSplit:
             if form:
                 try:
                     if self.rhythm.musickey(i - 1) != 12:
-                        chord = dlchord.Chord(chord).modify(key=tones[self.rhythm.musickey(i - 1)], advanced=advanced)
+                        chord = dlchord.Chord(chord).modify(tones[self.rhythm.musickey(i - 1)], advanced=advanced)
                 except ValueError:
                     pass
                 
