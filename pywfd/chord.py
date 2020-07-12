@@ -145,6 +145,17 @@ def is_wavetone_chord(chord):
         return True
 
 
+def getIndexNearestTime(times, time):
+    near = -1
+    index = 0
+    for i, t in enumerate(times):
+        if abs(t[0] - time) < near or near == -1:
+            near = abs(t[0] - time)
+            index = i
+
+    return index
+
+
 class ChordSplit:
     def __init__(self, chord, rhythm, label):
         self._raw_chord = chord
@@ -172,7 +183,7 @@ class ChordSplit:
 
         return chord
 
-    def chordLabel(self, advanced=False):
+    def chordLabel(self, advanced=False, allow_label=True):
         """[summary]
         
         Returns:
@@ -184,8 +195,7 @@ class ChordSplit:
 
         chord = ""
         now_chord = ""
-        for i in range(len(self.chord)):
-            now_chord = self.chord[i]
+        for i, now_chord in enumerate(self.chord):
 
             if now_chord != '' and now_chord != "N.C.":
                 now_chord = dlchord.Chord(now_chord).modify(tones[self.rhythm.musickey(i)], advanced=advanced).chord
@@ -193,11 +203,20 @@ class ChordSplit:
             if i == 0:
                 chord = now_chord
 
-            if chord != now_chord and now_chord != '' or i == (len(self.chord) - 1):
-                e_time = self.rhythm.time(i)
+            if (chord != now_chord and now_chord != '') or i == len(self.chord) - 1:
+                s_time = round(s_time, 4)
+                e_time = round(self.rhythm.time(i), 4)
                 times.append([s_time, e_time, chord])
                 chord = now_chord
                 s_time = e_time
+
+        if allow_label:
+            for label in self.label.label_list:
+                label_value = label.getLabel()
+                if label_value[:1] == "!":
+                    label_time = label.getTime() / 1000
+                    index = getIndexNearestTime(times, label_time)
+                    times[index][-1] = label_value[1:]
 
         return times
 

@@ -42,7 +42,7 @@ class Label:
 
     def __init__(self, label):
         self._raw_label = label
-        self._label_list = []
+        self.label_list = []
         self._label_num = 0
 
         self._parse_label(self._raw_label)
@@ -53,18 +53,18 @@ class Label:
         for lab in splitindex(label[1:], 18):
             label = LabelSplit()
             label.parse(lab)
-            self._label_list.append(label)
+            self.label_list.append(label)
 
     def append(self, label):
         self._label_num += 1
-        self._label_list.append(label)
+        self.label_list.append(label)
 
     def to_array(self):
         result_array = []
         result_array.append(self._label_num)
-        self._label_list = sorted(self._label_list, key=lambda x: x._time)
+        self.label_list = sorted(self.label_list, key=lambda x: x._time)
 
-        for lab in self._label_list:
+        for lab in self.label_list:
             result_array.extend(lab.encoded_label())
 
         return result_array
@@ -92,6 +92,12 @@ class LabelSplit:
         self._char_label = np.zeros((64, ), dtype="uint32")
         for i, v in enumerate(value):
             self._char_label[i] = ord(v)
+
+    def getLabel(self):
+        return "".join([chr(ch) for ch in self._char_label if ch != 0])
+
+    def getTime(self):
+        return self._time
 
     def encoded_label(self):
         encoded_text = int(self._time).to_bytes(8, 'little')
