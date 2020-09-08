@@ -5,6 +5,12 @@ from pywfd import label as lb
 from pywfd import const
 
 
+def ToMajor(key):
+    if key == const.KEYLENGTH:
+        return -1
+    if key > 11:
+        return key - 12
+    return key
 
 def splitindex(l, n):
     for idx in range(0, len(l), n):
@@ -148,10 +154,10 @@ class ChordSplit:
         chord = []
         for i in range(len(raw_chord)):
             parse_chord = self._split(i)
-            if parse_chord != "" and parse_chord != "N.C." and self.rhythm.musickey(i) != const.KEYLENGTH:
-                key = self.rhythm.musickey(i)
-                if key > 11:
-                    key -= 12
+            if parse_chord != "" and parse_chord != "N.C.":
+                key = ToMajor(self.rhythm.musickey(i))
+                if key == -1:
+                    key = 0
                 parse_chord = dlchord.Chord(parse_chord).modify(const.KEY_TONES[key], advanced=advanced).chord
             chord.append(parse_chord)
 
@@ -172,7 +178,10 @@ class ChordSplit:
         for i, now_chord in enumerate(self.chord):
 
             if now_chord != '' and now_chord != "N.C.":
-                now_chord = dlchord.Chord(now_chord).modify(const.KEY_TONES[self.rhythm.musickey(i)], advanced=advanced).chord
+                key = ToMajor(self.rhythm.musickey(i))
+                if key == -1:
+                    key = 0
+                now_chord = dlchord.Chord(now_chord).modify(const.KEY_TONES[key], advanced=advanced).chord
 
             if i == 0:
                 chord = now_chord
@@ -265,8 +274,9 @@ class ChordSplit:
         for i, chord in enumerate(self.chord, start=1):
             if form:
                 try:
-                    if self.rhythm.musickey(i - 1) != 12:
-                        chord = dlchord.Chord(chord).modify(const.KEY_TONES[self.rhythm.musickey(i - 1)], advanced=advanced)
+                    key = ToMajor(self.rhythm.musickey(i - 1))
+                    if key != -1:
+                        chord = dlchord.Chord(chord).modify(const.KEY_TONES[key], advanced=advanced)
                 except ValueError:
                     pass
                 
