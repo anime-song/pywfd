@@ -1,3 +1,10 @@
+## 1.3.0
+- wavetone 2.6.2に対応
+- 調の種類を追加（短調の追加）
+- バグの修正
+- 関数の最適化
+- ラベル機能で本来入力できないコードを入力できるように改良 (詳しくはREADMEを参照)
+
 ## 1.2.4
 - BLOCK_PER_SEMITONE -> BLOCKS_PER_SEMITONEに変更
 - BLOCK_PER_SECOND -> BLOCKS_PER_SECONDに変更

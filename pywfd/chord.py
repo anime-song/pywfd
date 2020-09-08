@@ -2,37 +2,8 @@ import os
 import dlchord
 from dlchord import Chord
 from pywfd import label as lb
+from pywfd import const
 
-chord_quality = {
-    0: "",
-    1: "m",
-    2: "dim7",
-    3: "aug",
-    4: "6",
-    5: "7",
-    6: "M7",
-    7: "add9",
-    8: "m6",
-    9: "m7",
-    10: "mM7",
-    11: "sus4",
-    12: "7sus4",
-    13: "m7-5"}
-chord_tone = {
-    0: "C",
-    1: "C#",
-    2: "D",
-    3: "D#",
-    4: "E",
-    5: "F",
-    6: "F#",
-    7: "G",
-    8: "G#",
-    9: "A",
-    10: "A#",
-    11: "B"}
-
-tones = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B", "N"]
 
 
 def splitindex(l, n):
@@ -53,10 +24,10 @@ def number_to_chord(chord_num, is_input=False, on_chord=False):
         name = (chord_num - 11) // 12
         pitch += 1
 
-    pitch %= 12
-    name %= 14
+    pitch %= len(const.CHORD_TONE)
+    name %= len(const.CHORD_QUALITY)
 
-    return chord_tone[pitch] + chord_quality[name]
+    return const.CHORD_TONE[pitch] + const.CHORD_QUALITY[name]
 
 
 def chord_to_array(chord, tension=True):
@@ -82,24 +53,24 @@ def chord_to_array(chord, tension=True):
         if chord.bass == chord.root:
             if "b9" in quality:
                 if "m" in quality:
-                    chord = Chord(Chord(tones[chord.root] + "7").transpose(3).chord + "/" + tones[chord.root])
+                    chord = Chord(Chord(const.TONES[chord.root] + "7").transpose(3).chord + "/" + const.TONES[chord.root])
                 else:
-                    chord = Chord(Chord(tones[chord.root] + "dim7").transpose(4).chord + "/" + tones[chord.root])
+                    chord = Chord(Chord(const.TONES[chord.root] + "dim7").transpose(4).chord + "/" + const.TONES[chord.root])
             elif "9" in quality and "add" not in quality and "sus" not in quality and "#9" not in quality:
                 if "m" in quality and "M" not in quality:
-                    chord = Chord(Chord(tones[chord.root] + "M7").transpose(3).chord + "/" + tones[chord.root])
+                    chord = Chord(Chord(const.TONES[chord.root] + "M7").transpose(3).chord + "/" + const.TONES[chord.root])
                 elif "M" in quality:
-                    chord = Chord(Chord(tones[chord.root] + "m7").transpose(4).chord + "/" + tones[chord.root])
+                    chord = Chord(Chord(const.TONES[chord.root] + "m7").transpose(4).chord + "/" + const.TONES[chord.root])
                 else:
-                    chord = Chord(Chord(tones[chord.root] + "m7-5").transpose(4).chord + "/" + tones[chord.root])
+                    chord = Chord(Chord(const.TONES[chord.root] + "m7-5").transpose(4).chord + "/" + const.TONES[chord.root])
             elif "11" in quality:
                 if "m" in quality:
-                    chord = Chord(Chord(tones[chord.root] + "add9").transpose(3).chord + "/" + tones[chord.root])
+                    chord = Chord(Chord(const.TONES[chord.root] + "add9").transpose(3).chord + "/" + const.TONES[chord.root])
 
     quality = chord.quality.quality
     chord_num += chord.root
 
-    sorted_quality = sorted(chord_quality.items(), key=lambda x: len(x[1]), reverse=True)
+    sorted_quality = sorted(const.CHORD_QUALITY.items(), key=lambda x: len(x[1]), reverse=True)
     for idx, qua in sorted_quality:
         if qua[:3] in quality:
             chord_num += (12 * idx)
@@ -139,7 +110,7 @@ def label_to_chord(label, sep=':'):
 
 def is_wavetone_chord(chord):
     tension = ["9", "13", "11", "M7-5", "aug7", "augM7"]
-    if any([t in chord for t in tension]):
+    if any([t in chord for t in tension]) and "add9" not in chord:
         return False
     else:
         return True
@@ -177,8 +148,11 @@ class ChordSplit:
         chord = []
         for i in range(len(raw_chord)):
             parse_chord = self._split(i)
-            if parse_chord != "" and parse_chord != "N.C." and self.rhythm.musickey(i) != 12:
-                parse_chord = dlchord.Chord(parse_chord).modify(tones[self.rhythm.musickey(i)], advanced=advanced).chord
+            if parse_chord != "" and parse_chord != "N.C." and self.rhythm.musickey(i) != const.KEYLENGTH:
+                key = self.rhythm.musickey(i)
+                if key > 11:
+                    key -= 12
+                parse_chord = dlchord.Chord(parse_chord).modify(const.KEY_TONES[key], advanced=advanced).chord
             chord.append(parse_chord)
 
         return chord
@@ -198,7 +172,7 @@ class ChordSplit:
         for i, now_chord in enumerate(self.chord):
 
             if now_chord != '' and now_chord != "N.C.":
-                now_chord = dlchord.Chord(now_chord).modify(tones[self.rhythm.musickey(i)], advanced=advanced).chord
+                now_chord = dlchord.Chord(now_chord).modify(const.KEY_TONES[self.rhythm.musickey(i)], advanced=advanced).chord
 
             if i == 0:
                 chord = now_chord
@@ -236,7 +210,7 @@ class ChordSplit:
 
             if key != now_key or i == (len(self.rhythm.rhythmkey.rhythm_key_map) - 1):
                 e_time = self.rhythm.time(i)
-                times.append([s_time, e_time, tones[key]])
+                times.append([s_time, e_time, const.KEY_TONES[key]])
                 key = now_key
                 s_time = e_time
 
@@ -258,7 +232,7 @@ class ChordSplit:
 
         if min_time - label[0][0] > duration:
             label[0][0] += abs(min_time - label[0][0])
-
+        
         for i in range(len(self.chord)):
             if len(label) <= offset:
                 break
@@ -266,19 +240,19 @@ class ChordSplit:
             duration = abs(self.rhythm.time(i) - self.rhythm.time(i + 1))
 
             dist = abs(self.rhythm.time(i) - label[offset][0])
-            if dist < duration:
-                if dist <= abs(self.rhythm.time(i + 1) - label[offset][0]):
-                    chordlist.append(chord_to_array(label[offset][-1]))
-                    if not is_wavetone_chord(label[offset][-1]):
-                        c_label = lb.LabelSplit()
-                        c_label.setTime(int(self.rhythm.time(i) * 1000))
-                        c_label.setLabel(label[offset][-1])
-                        self.label.append(c_label)
-                    offset += 1
+            if dist < duration and dist <= abs(self.rhythm.time(i + 1) - label[offset][0]):
+                chordlist.append(chord_to_array(label[offset][-1]))
+                if not is_wavetone_chord(label[offset][-1]):
+                    c_label = lb.LabelSplit()
+                    c_label.setTime(int(self.rhythm.time(i) * 1000))
+                    c_label.setLabel("!" + label[offset][-1])
+                    self.label.append(c_label)
+                offset += 1
+            else:
+                if i == 0:
+                    chordlist.append(chord_to_array("N.C."))
                 else:
                     chordlist.append(chord_to_array(''))
-            else:
-                chordlist.append(chord_to_array(''))
 
         return chordlist
 
@@ -292,7 +266,7 @@ class ChordSplit:
             if form:
                 try:
                     if self.rhythm.musickey(i - 1) != 12:
-                        chord = dlchord.Chord(chord).modify(tones[self.rhythm.musickey(i - 1)], advanced=advanced)
+                        chord = dlchord.Chord(chord).modify(const.KEY_TONES[self.rhythm.musickey(i - 1)], advanced=advanced)
                 except ValueError:
                     pass
                 

@@ -1,29 +1,37 @@
+from pywfd import const
+
 class RhythmKey:
     def __init__(self, rhythm_key_map, chord):
         self.raw_rhythm_key_map = rhythm_key_map
         self.rhythm_key_map = self._convert_rhythm_key_map(
             self.raw_rhythm_key_map, chord)
         self.chord = chord
-
+    
     def _convert_rhythm_key_map(self, raw_rhythm_key_map, chord):
+        """
+            拍子と調のデータをコンバートする。
+
+        """
         rhythm_key_map = []
 
         for i in range(len(raw_rhythm_key_map)):
-            if i == len(raw_rhythm_key_map) - 1:
-                rmp = raw_rhythm_key_map[i][1:]
-                if raw_rhythm_key_map[i][-1] > 12:
-                    rmp[-1] = 12
+            if len(raw_rhythm_key_map) > 1 and (i + 1) != len(raw_rhythm_key_map):
+                # 時間の分割単位 (コードの時間単位に依存)
+                # 単位の個数を求める (4/4拍子なら 小節数に8を掛ける)
+                loop = int(raw_rhythm_key_map[i + 1][0] - raw_rhythm_key_map[i][0]) * raw_rhythm_key_map[i][1] * 2
+            else:
+                # 時間の分割単位 (コードの時間単位に依存)
+                # 残りの個数 (最後までの個数)
                 loop = int(len(chord) - len(rhythm_key_map))
-                for j in range(loop):
-                    rhythm_key_map.append(rmp)
-                break
 
-            loop = int(raw_rhythm_key_map[i + 1][0] - raw_rhythm_key_map[i][0]) * raw_rhythm_key_map[i][1] * 2
             rmp = raw_rhythm_key_map[i][1:]
-            if raw_rhythm_key_map[i][-1] > 12:
-                rmp[-1] = 12
+
+            # 最大値（調なし）に値を制限
+            if raw_rhythm_key_map[i][-1] > const.KEYLENGTH:
+                rmp[-1] = const.KEYLENGTH
+            
+            # すべてに代入
             for j in range(loop):
-                
                 rhythm_key_map.append(rmp)
 
         return rhythm_key_map
@@ -31,31 +39,48 @@ class RhythmKey:
 
 class TempoMap:
 
-    def __init__(self, tempomap, rhythmkey, beat_offset, k=960):
+    def __init__(self, tempomap, rhythmkey, beat_offset):
         self.raw_tempomap = tempomap
         self.rhythm_key_map = rhythmkey.rhythm_key_map
 
         self.beat_offset = beat_offset
-        self.k = k
 
         self.tempomap = self._convert_tempomap(self.raw_tempomap)
+
+    def _getUnitNumber(self, index):
+        pos = 0
+        for i in range(index):
+            measure = self.rhythm_key_map[pos][0]
+            pos += measure * 2
+
+            if pos > len(self.rhythm_key_map):
+                break
+
+        return pos
 
     def _convert_tempomap(self, raw_tempomap):
         tempomap = []
 
-        nowtempo = raw_tempomap[0][1] / 10000
-        if len(raw_tempomap) > 1:
-            now_time = 1
-        else:
-            now_time = 0
+        # テンポは 10000 で割る
+        currentTempo = raw_tempomap[0][1] / const.TEMPO_DIVIDE
+        current_pos = 1
 
         for i in range(len(self.rhythm_key_map)):
-            tempomap.append(nowtempo)
+            # テンポマップに現在のテンポを挿入する
+            tempomap.append(currentTempo)
             
-            if raw_tempomap[now_time][0] / self.k == i:
-                nowtempo = raw_tempomap[now_time][1] / 10000
-                if now_time < len(raw_tempomap) - 1:
-                    now_time += 1
+            if len(raw_tempomap) > 1:
+                # 2番目の位置の数値で割ることで小節番号がわかる
+                M_NUM = int(raw_tempomap[current_pos][0] / raw_tempomap[1][0])
+
+                # 小節番号の中に現在位置があったら
+                if self._getUnitNumber(M_NUM) == (i + 1):
+                    # 現在のテンポを取得
+                    tmpTempo = raw_tempomap[current_pos][1] / const.TEMPO_DIVIDE
+                    if currentTempo != tmpTempo:
+                        currentTempo = tmpTempo
+                        if (current_pos + 1) < len(raw_tempomap):
+                            current_pos += 1
 
         return tempomap
 
