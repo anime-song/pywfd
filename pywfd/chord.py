@@ -1,5 +1,6 @@
 import os
 import dlchord
+import itertools
 from dlchord import Chord
 from pywfd import label as lb
 from pywfd import const
@@ -200,6 +201,44 @@ class ChordSplit:
                     label_time = label.getTime() / 1000
                     index = getIndexNearestTime(times, label_time)
                     times[index][-1] = label_value[1:]
+
+        return times
+
+    def sectionLabel(self):
+        times = []
+        labels = []
+        for label in self.label.label_list:
+            label_value = label.getLabel()
+            if label_value[:2].lower() == "s!":
+                label_time = label.getTime() / 1000
+                labels.append([label_time, label_value[2:]])
+
+        if labels:
+            label_len = len(labels)
+            for i in range(label_len):
+                if len(labels) < i + 2:
+                    times.append([labels[i][0], round(self.rhythm.length, 4), labels[i][-1]])
+                else:
+                    times.append([labels[i][0], labels[i + 1][0], labels[i][-1]])
+
+        return times
+
+    def bpmLabel(self):
+        times = []
+        labels = []
+        for label in self.label.label_list:
+            label_value = label.getLabel()
+            if label_value[:2].lower() == "b!":
+                label_time = label.getTime() / 1000
+                labels.append([label_time, label_value[2:]])
+
+        if labels:
+            label_len = len(labels)
+            for i in range(label_len):
+                if len(labels) < i + 2:
+                    times.append([labels[i][0], round(self.rhythm.length, 4), labels[i][-1]])
+                else:
+                    times.append([labels[i][0], labels[i + 1][0], labels[i][-1]])
 
         return times
 
